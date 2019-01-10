@@ -3,11 +3,22 @@
 // description:
 package main
 
-import "config"
+import (
+	"config"
+	"fmt"
+	"utils"
+)
 
 func main() {
 
-	pool := config.InitRedisPool()
-	conn := pool.Get()
-	conn.Do("set", "pool", "test")
+	config.InitRedisPool()
+	//boll := utils.RedisSetWithExpire("pool", "message",20)
+	//fmt.Println(boll)
+	str := "{\"name\":\"张三\"}"
+	utils.RedisSet("json", str)
+	v, err := utils.RedisGetString("json")
+	if err != nil {
+		fmt.Println("error  ", err)
+	}
+	fmt.Println(v)
 }
