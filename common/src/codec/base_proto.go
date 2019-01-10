@@ -54,11 +54,11 @@ func Decoder(buffer []byte, ch chan []byte) []byte {
 // 默认协议构造
 func NewDefaultProto(message string) *BaseProto {
 	crc32Val := utils.Crc32([]byte(message))
-	return new(BaseProto{Magic: QuoteHeader, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val})
+	return &BaseProto{Magic: QuoteHeader, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val}
 }
 
 //指定协议头构造
 func NewProto(magic, message string) *BaseProto {
 	crc32Val := utils.Crc32([]byte(message))
-	return new(BaseProto{Magic: magic, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val})
+	return &BaseProto{Magic: magic, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val}
 }

@@ -14,11 +14,13 @@ func main() {
 	config.InitRedisPool()
 	//boll := utils.RedisSetWithExpire("pool", "message",20)
 	//fmt.Println(boll)
-	str := "{\"name\":\"张三\"}"
-	utils.RedisSet("json", str)
+	//str := "{\"name\":\"张三\"}"
+	//utils.RedisSet("json", str)
 	v, err := utils.RedisGetString("json")
 	if err != nil {
-		fmt.Println("error  ", err)
+		utils.Debug("xieru ")
 	}
 	fmt.Println(v)
+
+	//utils.Debug("测试信息",11,22)
 }
