@@ -3,18 +3,11 @@
 // description:
 package config
 
-type Config struct {
-	Redis    *Redis
-	RabbitMQ *RabbitMQ
-	Mysql    *Mysql
-}
-
-type Redis struct {
-	Host     string
-	Port     int
-	Password string
-	DataBase int
-}
+//type Config struct {
+//	Redis    *Redis
+//	RabbitMQ *RabbitMQ
+//	Mysql    *Mysql
+//}
 
 type RabbitMQ struct {
 	Host     string
