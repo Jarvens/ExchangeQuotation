@@ -7,5 +7,7 @@ import "config"
 
 func main() {
 
-	config.InitRedisPool()
+	pool := config.InitRedisPool()
+	conn := pool.Get()
+	conn.Do("set", "pool", "test")
 }

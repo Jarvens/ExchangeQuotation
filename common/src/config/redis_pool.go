@@ -23,6 +23,7 @@ var RedisPool *redis.Pool
 
 // 创建redis连接池
 func newPool(config *Redis) *redis.Pool {
+	fmt.Println("redis config info ", config)
 	return &redis.Pool{
 		MaxIdle:     config.MaxIdle,
 		MaxActive:   config.MaxActive,
@@ -51,12 +52,13 @@ func newPool(config *Redis) *redis.Pool {
 	}
 }
 
-func InitRedisPool() {
+func InitRedisPool() *redis.Pool {
 	config := Redis{}
-	configor.Load(&config, "../../../redis.json")
+	configor.Load(&config, "redis.json")
 	if (Redis{} == config) {
 		fmt.Println("redis config is empty please make sure redis.json is available")
-		return
+		return nil
 	}
 	RedisPool = newPool(&config)
+	return RedisPool
 }
