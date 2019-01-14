@@ -3,7 +3,9 @@
 // description:
 package codec
 
-import "utils"
+import (
+	"common"
+)
 
 /*
 
@@ -20,13 +22,13 @@ const (
 
 // 行情编码
 func QuoteEncode(message []byte) []byte {
-	crcVal := utils.Crc32(message)
+	crcVal := common.Crc32(message)
 	return append(
 		append(
 			append([]byte(QuoteHeader),
-				utils.Uint16ToByte(uint16(len(message)))...),
+				Uint16ToByte(uint16(len(message)))...),
 			message...),
-		utils.Uint32ToByte(crcVal)...,
+		Uint32ToByte(crcVal)...,
 	)
 }
 
@@ -40,7 +42,7 @@ func QuoteDecode(buffer []byte, ch chan []byte) []byte {
 			break
 		}
 		if string(buffer[i:QuoteHeaderLen]) == QuoteHeader {
-			messageLen = utils.ByteToUint16(buffer[i+QuoteHeaderLen : i+QuoteHeaderLen+2])
+			messageLen = ByteToUint16(buffer[i+QuoteHeaderLen : i+QuoteHeaderLen+2])
 			if len <= i+QuoteHeaderLen+2+int(messageLen)+4 {
 				break
 			}

@@ -53,7 +53,7 @@ func newPool(config *Redis) *redis.Pool {
 
 func InitRedisPool() *redis.Pool {
 	config := Redis{}
-	configor.Load(&config, "redis.json")
+	configor.Load(&config, "../../redis.json")
 	if (Redis{} == config) {
 		return nil
 	}

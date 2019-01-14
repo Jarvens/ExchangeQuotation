@@ -1,7 +1,7 @@
 // auth: kunlun
 // date: 2019-01-10
 // description:
-package codec
+package common
 
 const (
 	BID  = "bid"

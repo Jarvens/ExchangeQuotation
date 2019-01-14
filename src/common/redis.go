@@ -1,11 +1,12 @@
 // auth: kunlun
 // date: 2019-01-10
 // description: redis操作工具类
-package utils
+package common
 
 import (
 	"config"
 	"github.com/gomodule/redigo/redis"
+	"log"
 )
 
 //
@@ -15,7 +16,8 @@ func RedisSet(key, value string) bool {
 	defer conn.Close()
 	_, err := conn.Do("SET", key, value)
 	if err != nil {
-		Debug("set error: ", err)
+		log.Panic("set error: ", err)
+
 		return false
 	}
 	return true
@@ -26,12 +28,12 @@ func RedisSetWithExpire(key, value string, num int) bool {
 	defer conn.Close()
 	_, err := conn.Do("SET", key, value)
 	if err != nil {
-		Debug("set with expire error: ", err)
+		log.Panic("set with expire error: ", err)
 		return false
 	}
 	_, err1 := conn.Do("EXPIRE", key, num*60)
 	if err1 != nil {
-		Debug("set with expire error: ", err1)
+		log.Panic("set with expire error: ", err1)
 		return false
 	}
 	return true
@@ -42,7 +44,7 @@ func RedisGetString(key string) (value string, err error) {
 	defer conn.Close()
 	v, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		Debug("get string error: %v", err)
+		log.Panicf("get string error: %v", err)
 		return "", err
 	}
 	return v, nil
@@ -53,7 +55,7 @@ func RedisGetStringMap(key string) (value map[string]string, err error) {
 	defer conn.Close()
 	v, err := redis.StringMap(conn.Do("GET", key))
 	if err != nil {
-		Debug("get string map  error: ", err)
+		log.Panic("get string map  error: ", err)
 		return nil, err
 	}
 	return v, nil

@@ -5,33 +5,34 @@ package server
 
 import (
 	"codec"
+	"common"
 	"encoding/json"
+	"log"
 	"net"
-	"utils"
 )
 
 func Start() {
 	address := "localhost:12345"
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", address)
 	if err != nil {
-		utils.Debug("Analysis address error: %v", err)
+		log.Fatalf("Analysis address error: %v", err)
 	}
 
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		utils.Debug("Listener error: ", err)
+		log.Fatal("Listener error: ", err)
 		return
 	}
 
 	for {
 		conn, err := listener.AcceptTCP()
-		conn.SetNoDelay(true)
+		//conn.SetNoDelay(true)
 		if err != nil {
-			utils.Debug("Accept error: %v", err)
+			log.Fatalf("Accept error: %v", err)
 			return
 		}
 
-		utils.Debug("Client address is: %s", conn.RemoteAddr())
+		log.Printf("Client address is: %s", conn.RemoteAddr())
 
 		go loopHandler(conn)
 	}
@@ -39,7 +40,7 @@ func Start() {
 }
 
 func loopHandler(conn net.Conn) {
-	defer conn.Close()
+	//defer conn.Close()
 	tmpBuffer := make([]byte, 0)
 	//创建带缓冲的 chan
 	ch := make(chan []byte, 16)
@@ -48,19 +49,19 @@ func loopHandler(conn net.Conn) {
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil {
-			utils.Debug("Read message error: %v", err)
+			log.Fatalf("Read message error: %v", err)
 			return
 		}
 		tmpBuffer = codec.Decoder(buffer[:n], ch)
-		response := codec.ResponseData{}
+		response := common.ResponseData{}
 		_ = json.Unmarshal(tmpBuffer, &response)
-		utils.Debug("Analysis success: %v", response)
+		log.Printf("Analysis success: %v", response)
 	}
 }
 
 func read(ch chan []byte) {
 	select {
 	case data := <-ch:
-		utils.Debug("Wtite data to chan: %v", data)
+		log.Fatalf("Wtite data to chan: %v", data)
 	}
 }

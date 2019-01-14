@@ -4,8 +4,8 @@
 package codec
 
 import (
+	"common"
 	"fmt"
-	"utils"
 )
 
 type BaseProto struct {
@@ -18,9 +18,9 @@ type BaseProto struct {
 // 对baseProto 进行编码
 func (proto *BaseProto) Encoder() []byte {
 	encodeBytes := append(append(append([]byte(proto.Magic),
-		utils.Uint16ToByte(proto.Len)...),
+		Uint16ToByte(proto.Len)...),
 		proto.Data...),
-		utils.Uint32ToByte(proto.Crc32)...)
+		Uint32ToByte(proto.Crc32)...)
 	return encodeBytes
 }
 
@@ -36,7 +36,7 @@ func Decoder(buffer []byte, ch chan []byte) []byte {
 		}
 		header := string(buffer[i:QuoteHeaderLen])
 		if header == QuoteHeader {
-			msgLen = utils.ByteToUint16(buffer[i+QuoteHeaderLen : i+QuoteHeaderLen+2])
+			msgLen = ByteToUint16(buffer[i+QuoteHeaderLen : i+QuoteHeaderLen+2])
 			if len <= i+QuoteHeaderLen+2+int(msgLen)+4 {
 				break
 			}
@@ -53,12 +53,30 @@ func Decoder(buffer []byte, ch chan []byte) []byte {
 
 // 默认协议构造
 func NewDefaultProto(message string) *BaseProto {
-	crc32Val := utils.Crc32([]byte(message))
+	crc32Val := common.Crc32([]byte(message))
 	return &BaseProto{Magic: QuoteHeader, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val}
 }
 
 //指定协议头构造
 func NewProto(magic, message string) *BaseProto {
-	crc32Val := utils.Crc32([]byte(message))
+	crc32Val := common.Crc32([]byte(message))
 	return &BaseProto{Magic: magic, Len: uint16(len([]byte(message))), Data: message, Crc32: crc32Val}
+}
+
+// uint16 to byte
+func Uint16ToByte(val uint16) []byte {
+	return []byte{byte(val), byte(val >> 8)}
+
+}
+
+func Uint32ToByte(val uint32) []byte {
+	return []byte{byte(val), byte(val >> 8), byte(val >> 16), byte(val >> 24)}
+}
+
+func ByteToUint16(b []byte) uint16 {
+	var val uint16 = 0
+	for i := 0; i < len(b); i++ {
+		val = val + uint16(uint(b[i])<<uint(8*i))
+	}
+	return val
 }
