@@ -35,7 +35,6 @@ func InitConnection(wsCon *websocket.Conn) (conn *Connection, err error) {
 func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
-		fmt.Println("Read message")
 		conn.WriteMessage([]byte("你好"))
 	case <-conn.closeChan:
 		err = errors.New("connection is closed")
@@ -48,7 +47,6 @@ func (conn *Connection) ReadMessage() (data []byte, err error) {
 func (conn *Connection) WriteMessage(data []byte) (err error) {
 	select {
 	case conn.outChan <- data:
-		fmt.Println("Write message ")
 	case <-conn.closeChan:
 		err = errors.New("connection is closed")
 		fmt.Println("Connection is closed")
@@ -67,6 +65,7 @@ func (conn *Connection) Close() {
 	conn.mutex.Unlock()
 }
 
+// 循环读取
 func (conn *Connection) readLoop() {
 	var (
 		data []byte
@@ -89,6 +88,7 @@ ERR:
 	conn.Close()
 }
 
+// 循环写入
 func (conn *Connection) writeLoop() {
 	var (
 		data []byte

@@ -17,16 +17,13 @@ var upgrade = websocket.Upgrader{
 }
 
 func Handle(w http.ResponseWriter, r *http.Request) {
-
 	fmt.Println("Start Handle")
-
 	var (
 		wsConn *websocket.Conn
 		err    error
 		conn   *Connection
-		data   []byte
+		//data   []byte
 	)
-
 	if wsConn, err = upgrade.Upgrade(w, r, nil); err != nil {
 		return
 	}
@@ -36,12 +33,13 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 	for {
 
-		if data, err = conn.ReadMessage(); err != nil {
+		if _, err = conn.ReadMessage(); err != nil {
 			goto ERR
 		}
-		if err = conn.WriteMessage(data); err != nil {
-			goto ERR
-		}
+
+		//if err = conn.WriteMessage(data); err != nil {
+		//	goto ERR
+		//}
 
 	}
 
