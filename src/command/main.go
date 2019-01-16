@@ -4,10 +4,15 @@
 package main
 
 import (
-	"server"
+	"net/http"
+	"websocket"
 )
 
 func main() {
 
-	server.Start()
+	//server.Start()
+
+	http.HandleFunc("/", websocket.Handle)
+	http.ListenAndServe("0.0.0.0:1234", nil)
+
 }
