@@ -5,7 +5,6 @@ package request
 
 import (
 	"time"
-	"websocket"
 )
 
 const (
@@ -24,8 +23,10 @@ type SubResult struct {
 
 // 订阅请求
 type SubRequest struct {
-	Id  string `json:"id"`  //客户端标识
-	Sub string `json:"sub"` //请求
+	Id   string `json:"id"`   //客户端标识
+	OpK  string `json:"opk"`  //操作键  sub  unsub
+	Opv  string `json:"opv"`  //操作值
+	Rate int    `json:"rate"` //速率
 }
 
 // 成交数据
@@ -55,8 +56,8 @@ func NewTick() *Tick {
 }
 
 // 订阅成功
-func (sub *SubResult) SubSuccess() SubResult {
-	return SubResult{Id: "client1",
+func (sub *SubResult) SubSuccess() *SubResult {
+	return &SubResult{Id: "client1",
 		Status:     SUB_SUCCESS,
 		ErrCode:    "",
 		ErrMessage: "",
@@ -64,18 +65,10 @@ func (sub *SubResult) SubSuccess() SubResult {
 }
 
 // 订阅失败
-func (sub *SubRequest) SubFailure(code, message string) *SubResult {
+func (sub *SubResult) SubFailure(code, message string) *SubResult {
 	return &SubResult{Id: "client1",
 		Status:     SUB_FAILURE,
 		ErrCode:    code,
 		ErrMessage: message,
 		Timestamp:  uint32(time.Now().Unix())}
-}
-
-// 订阅参数选项
-type SubOption struct {
-	Conn         *websocket.Connection //connection
-	LastPushTime time.Time             //最后推送时间
-	Rate         int                   //推送速率  默认5秒一次
-	Symbol       []string              //交易对
 }

@@ -4,10 +4,15 @@
 package websocket
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"log"
+	"request"
+	"strings"
 	"sync"
+	"time"
 )
 
 type Connection struct {
@@ -17,6 +22,18 @@ type Connection struct {
 	closeChan chan byte
 	mutex     sync.Mutex
 	isClosed  bool
+}
+
+type ConnectionCollection struct {
+	Collection []SubOption
+}
+
+// 订阅参数选项
+type SubOption struct {
+	Conn         *websocket.Conn //连接
+	LastPushTime time.Time       //最后推送时间
+	Rate         int             //推送速率  默认5秒一次
+	Symbol       []string        //交易对
 }
 
 // 初始化连接
@@ -35,7 +52,15 @@ func InitConnection(wsCon *websocket.Conn) (conn *Connection, err error) {
 func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
-		conn.WriteMessage([]byte("你好"))
+		result, err := MessageHandle(conn.wsConnect, data)
+		if err != nil {
+			log.Panic(err)
+		}
+		v, err1 := json.Marshal(result)
+		if err1 != nil {
+			log.Panic(err1)
+		}
+		conn.WriteMessage(v)
 	case <-conn.closeChan:
 		err = errors.New("connection is closed")
 		fmt.Println("Connection is closed")
@@ -107,4 +132,29 @@ func (conn *Connection) writeLoop() {
 	}
 ERR:
 	conn.Close()
+}
+
+func MessageHandle(conn *websocket.Conn, data []byte) (result *request.SubResult, err error) {
+	option := SubOption{}
+	//订阅
+	//取消订阅
+	//心跳
+	result = &request.SubResult{}
+	var sub request.SubRequest
+	err = json.Unmarshal(data, &sub)
+	if err != nil {
+		return result.SubFailure("100010", "订阅错误"), err
+	}
+
+	if sub.OpK == "sub" {
+		var str []string = make([]string, 0)
+		str = strings.Split(sub.Opv, ".")
+		option.Conn = conn
+		option.Rate = sub.Rate
+		option.Symbol = append(option.Symbol, str[1])
+		option.LastPushTime = time.Now()
+		return result.SubSuccess(), nil
+	}
+	return
+	//fmt.Println("Print analysis Result: ", option)
 }

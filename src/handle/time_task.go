@@ -3,6 +3,6 @@
 // description:
 package handle
 
-func TickHandle(value string) {
+func TimeTask() {
 
 }
