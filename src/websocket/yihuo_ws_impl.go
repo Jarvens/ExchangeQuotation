@@ -82,6 +82,9 @@ func (conn *Connection) WriteMessage(data []byte) (err error) {
 func (conn *Connection) Close() {
 	conn.wsConnect.Close()
 	conn.mutex.Lock()
+	//客户端下线  删除链接
+	addr := conn.wsConnect.RemoteAddr().String()
+	delete(GlobalOption, addr)
 	if !conn.isClosed {
 		close(conn.closeChan)
 		conn.isClosed = true
@@ -150,7 +153,6 @@ func MessageHandle(conn *Connection, data []byte) (result *request.SubResult, er
 		option.Symbol = append(option.Symbol, str[1])
 		option.LastPushTime = time.Now()
 		Sub(option)
-		fmt.Println("全局参数: ", GlobalOption)
 		return result.SubSuccess(), nil
 	} else if sub.Opv == "unsub" {
 
@@ -159,20 +161,14 @@ func MessageHandle(conn *Connection, data []byte) (result *request.SubResult, er
 }
 
 func Task() {
-	fmt.Println("初始化定时任务")
 	task := time.NewTicker(1 * time.Second)
 	for {
 		select {
 		case <-task.C:
-			fmt.Println("ticker")
 			for key, value := range GlobalOption {
 				rate := value.Rate
-				fmt.Printf("最后推送时间: %d 推送频率: %d  当前时间: %d\n", value.LastPushTime.Unix(), value.Rate, time.Now().Unix())
-				fmt.Println("时间差值: ", int(time.Now().Unix()-value.LastPushTime.Unix()))
-				//value.LastPushTime=time.Now()
-
 				if int(time.Now().Unix()-value.LastPushTime.Unix()) >= rate {
-					fmt.Printf("时间差值已达到，开始推送: %d\n", time.Now().Unix())
+					fmt.Printf("时间差值已达到，开始推送: %s\n", value.Conn.wsConnect.RemoteAddr().String())
 					result := request.NewTick()
 					data, err := json.Marshal(result)
 					if err != nil {
