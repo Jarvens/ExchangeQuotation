@@ -24,14 +24,15 @@ type Connection struct {
 	isClosed  bool
 }
 
-var GlobalOption map[string]SubOption
+var GlobalOption = make(map[string]SubOption)
 
 // 订阅参数选项
 type SubOption struct {
-	Conn         *websocket.Conn //连接
-	LastPushTime time.Time       //最后推送时间
-	Rate         int             //推送速率  默认5秒一次
-	Symbol       []string        //交易对
+	Conn         *Connection //连接
+	LastPushTime time.Time   //最后推送时间
+	Rate         int         //推送速率  默认5秒一次
+	Symbol       []string    //交易对
+	Type         string      //推送类型
 }
 
 // 初始化连接
@@ -50,7 +51,7 @@ func InitConnection(wsCon *websocket.Conn) (conn *Connection, err error) {
 func (conn *Connection) ReadMessage() (data []byte, err error) {
 	select {
 	case data = <-conn.inChan:
-		result, err := MessageHandle(conn.wsConnect, data)
+		result, err := MessageHandle(conn, data)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -132,8 +133,8 @@ ERR:
 	conn.Close()
 }
 
-func MessageHandle(conn *websocket.Conn, data []byte) (result *request.SubResult, err error) {
-	var option = make([]SubOption, 1)
+func MessageHandle(conn *Connection, data []byte) (result *request.SubResult, err error) {
+	var option SubOption
 	result = &request.SubResult{}
 	var sub request.SubRequest
 	err = json.Unmarshal(data, &sub)
@@ -144,11 +145,11 @@ func MessageHandle(conn *websocket.Conn, data []byte) (result *request.SubResult
 	if sub.OpK == "sub" {
 		var str = make([]string, 0)
 		str = strings.Split(sub.Opv, ".")
-		option[0].Conn = conn
-		option[0].Rate = sub.Rate
-		option[0].Symbol = append(option[0].Symbol, str[1])
-		option[0].LastPushTime = time.Now()
-		GlobalOption = append(GlobalOption, option...)
+		option.Conn = conn
+		option.Rate = sub.Rate
+		option.Symbol = append(option.Symbol, str[1])
+		option.LastPushTime = time.Now()
+		Sub(option)
 		fmt.Println("全局参数: ", GlobalOption)
 		return result.SubSuccess(), nil
 	} else if sub.Opv == "unsub" {
@@ -163,10 +164,48 @@ func Task() {
 	for {
 		select {
 		case <-task.C:
-			for _, conn := range GlobalOption {
-				fmt.Printf("exec task time: %d conn: %s \n", time.Now().Unix(), conn.Symbol)
+			fmt.Println("ticker")
+			for key, value := range GlobalOption {
+				rate := value.Rate
+				fmt.Printf("最后推送时间: %d 推送频率: %d  当前时间: %d\n", value.LastPushTime.Unix(), value.Rate, time.Now().Unix())
+				fmt.Println("时间差值: ", int(time.Now().Unix()-value.LastPushTime.Unix()))
+				//value.LastPushTime=time.Now()
 
+				if int(time.Now().Unix()-value.LastPushTime.Unix()) >= rate {
+					fmt.Printf("时间差值已达到，开始推送: %d\n", time.Now().Unix())
+					result := request.NewTick()
+					data, err := json.Marshal(result)
+					if err != nil {
+						panic(err)
+					}
+					value.Conn.WriteMessage(data)
+					value.LastPushTime = time.Now()
+					GlobalOption[key] = value
+				}
 			}
 		}
 	}
 }
+
+// 订阅
+func Sub(option SubOption) {
+	address := option.Conn.wsConnect.RemoteAddr().String()
+	// 判断是否已经订阅
+	if _, ok := GlobalOption[address]; !ok {
+		GlobalOption[address] = option
+	} else {
+		fmt.Println("重复订阅")
+	}
+	for _, v := range GlobalOption {
+		fmt.Println(v.Symbol)
+	}
+}
+
+// 取消订阅
+//func Unsub(conn *websocket.Conn,subRequest request.SubRequest)request.SubResult  {
+//	opv:=subRequest.OpK
+//
+//	var opvSlice=make([]string,0)
+//	opvSlice=strings.Split(opv,".")
+//
+//}
