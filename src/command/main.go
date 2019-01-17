@@ -15,4 +15,28 @@ func main() {
 	http.HandleFunc("/", websocket.Handle)
 	http.ListenAndServe("0.0.0.0:1234", nil)
 
+	//var wg sync.WaitGroup
+	//quit := make(chan int)
+	//wg.Add(1)
+	//ticker1 := time.NewTicker(1 * time.Second)
+	//count := 1
+	//go func() {
+	//	defer wg.Done()
+	//	fmt.Println("child goroutine bootstrap start")
+	//	for {
+	//		select {
+	//		case <-ticker1.C:
+	//			count++
+	//			fmt.Printf("ticker: %d\n", count)
+	//		case <-quit:
+	//			fmt.Println("work well")
+	//			ticker1.Stop()
+	//			return
+	//		}
+	//	}
+	//	fmt.Println("child goroutine bootstrap end")
+	//}()
+	//time.Sleep(50 * time.Second)
+	//quit <- 1
+	//wg.Wait()
 }

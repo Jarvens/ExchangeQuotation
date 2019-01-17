@@ -24,9 +24,7 @@ type Connection struct {
 	isClosed  bool
 }
 
-type ConnectionCollection struct {
-	Collection []SubOption
-}
+var GlobalOption map[string]SubOption
 
 // 订阅参数选项
 type SubOption struct {
@@ -135,10 +133,7 @@ ERR:
 }
 
 func MessageHandle(conn *websocket.Conn, data []byte) (result *request.SubResult, err error) {
-	option := SubOption{}
-	//订阅
-	//取消订阅
-	//心跳
+	var option = make([]SubOption, 1)
 	result = &request.SubResult{}
 	var sub request.SubRequest
 	err = json.Unmarshal(data, &sub)
@@ -147,14 +142,31 @@ func MessageHandle(conn *websocket.Conn, data []byte) (result *request.SubResult
 	}
 
 	if sub.OpK == "sub" {
-		var str []string = make([]string, 0)
+		var str = make([]string, 0)
 		str = strings.Split(sub.Opv, ".")
-		option.Conn = conn
-		option.Rate = sub.Rate
-		option.Symbol = append(option.Symbol, str[1])
-		option.LastPushTime = time.Now()
+		option[0].Conn = conn
+		option[0].Rate = sub.Rate
+		option[0].Symbol = append(option[0].Symbol, str[1])
+		option[0].LastPushTime = time.Now()
+		GlobalOption = append(GlobalOption, option...)
+		fmt.Println("全局参数: ", GlobalOption)
 		return result.SubSuccess(), nil
+	} else if sub.Opv == "unsub" {
+
 	}
 	return
-	//fmt.Println("Print analysis Result: ", option)
+}
+
+func Task() {
+	fmt.Println("初始化定时任务")
+	task := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-task.C:
+			for _, conn := range GlobalOption {
+				fmt.Printf("exec task time: %d conn: %s \n", time.Now().Unix(), conn.Symbol)
+
+			}
+		}
+	}
 }
