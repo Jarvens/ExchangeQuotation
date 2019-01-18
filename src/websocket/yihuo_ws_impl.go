@@ -4,6 +4,7 @@
 package websocket
 
 import (
+	"common"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,6 +34,7 @@ type SubOption struct {
 	Rate         int         //推送速率  默认5秒一次
 	Symbol       []string    //交易对
 	Type         string      //推送类型
+	UnAckCounter int         //未响应计数器
 }
 
 // 初始化连接
@@ -42,6 +44,11 @@ func InitConnection(wsCon *websocket.Conn) (conn *Connection, err error) {
 		inChan:    make(chan []byte, 1024),
 		outChan:   make(chan []byte, 1024),
 		closeChan: make(chan byte, 1)}
+
+	// 建立连接
+	addr := wsCon.RemoteAddr().String()
+	subOption := SubOption{Conn: conn}
+	GlobalOption[addr] = subOption
 	go conn.readLoop()
 	go conn.writeLoop()
 	return
@@ -172,17 +179,28 @@ func Task() {
 		select {
 		case <-task.C:
 			for key, value := range GlobalOption {
-				rate := value.Rate
-				if int(time.Now().Unix()-value.LastPushTime.Unix()) >= rate {
-					fmt.Printf("时间差值已达到，开始推送: %s\n", value.Conn.wsConnect.RemoteAddr().String())
-					result := request.NewTick()
-					data, err := json.Marshal(result)
-					if err != nil {
-						panic(err)
+
+				// go 不支持三元表达式
+				var rate int
+				if value.Rate == 0 {
+					rate = common.DefaultRate
+				} else {
+					rate = value.Rate
+				}
+
+				symbols := value.Symbol
+				if len(symbols) != 0 {
+					if int(time.Now().Unix()-value.LastPushTime.Unix()) >= rate {
+						fmt.Printf("时间差值已达到，开始推送: %s\n", value.Conn.wsConnect.RemoteAddr().String())
+						result := request.NewTick()
+						data, err := json.Marshal(result)
+						if err != nil {
+							panic(err)
+						}
+						value.Conn.WriteMessage(data)
+						value.LastPushTime = time.Now()
+						GlobalOption[key] = value
 					}
-					value.Conn.WriteMessage(data)
-					value.LastPushTime = time.Now()
-					GlobalOption[key] = value
 				}
 			}
 		}
@@ -223,11 +241,29 @@ func Unsub(conn *Connection, subRequest request.SubRequest) (result request.SubR
 // 频率为 5s 一次
 // 客户端连续忽略2次,服务端主动断开连接
 func Ping() {
-	task := time.NewTicker(5 * time.Second)
+	task := time.NewTicker(common.PingInterval * time.Second)
 	for {
 		select {
 		case <-task.C:
-
+			for k, v := range GlobalOption {
+				fmt.Println("遍历连接池")
+				unAck := v.UnAckCounter
+				if unAck >= common.UnAck {
+					fmt.Println("客户端未响应，主动断开")
+					v.Conn.Close()
+					continue
+				}
+				conn := v.Conn
+				ping := common.NewPing()
+				data, err := json.Marshal(ping)
+				if err != nil {
+					panic(err)
+				}
+				conn.WriteMessage(data)
+				//未响应计数器 +1
+				v.UnAckCounter = unAck + 1
+				GlobalOption[k] = v
+			}
 		}
 	}
 }

@@ -3,6 +3,8 @@
 // description:
 package common
 
+import "time"
+
 const (
 	BID  = "bid"
 	ASK  = "ask"
@@ -22,7 +24,14 @@ type ResponseData struct {
 	DayLow    float64 `json:"dayLow"`    //最低价
 }
 
-type PingResponse struct {
-	Id uint64 `json:"id"`
-	Ts uint64 `json:"ts"`
+type PingRequest struct {
+	Ping int64
+}
+
+type PongResponse struct {
+	Pong int64
+}
+
+func NewPing() *PingRequest {
+	return &PingRequest{Ping: time.Now().Unix()}
 }
