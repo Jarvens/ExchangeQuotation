@@ -179,7 +179,6 @@ func Task() {
 		select {
 		case <-task.C:
 			for key, value := range GlobalOption {
-
 				// go 不支持三元表达式
 				var rate int
 				if value.Rate == 0 {
@@ -190,6 +189,7 @@ func Task() {
 
 				symbols := value.Symbol
 				if len(symbols) != 0 {
+					//TODO 区分订阅为 1min  5min  15min
 					if int(time.Now().Unix()-value.LastPushTime.Unix()) >= rate {
 						fmt.Printf("时间差值已达到，开始推送: %s\n", value.Conn.wsConnect.RemoteAddr().String())
 						result := request.NewTick()
@@ -229,7 +229,10 @@ func Unsub(conn *Connection, subRequest request.SubRequest) (result request.SubR
 	var opvSlice = make([]string, 0)
 	opvSlice = strings.Split(opv, ".")
 	if opvSlice[1] == "all" {
-		delete(GlobalOption, addr)
+		//清空 订阅交易对
+		option := GlobalOption[addr]
+		option.Symbol = append([]string{})
+		GlobalOption[addr] = option
 	} else {
 		//如果不是全部取消。需要遍历即将要取消的交易对数组
 
