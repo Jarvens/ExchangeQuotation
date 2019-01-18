@@ -82,7 +82,7 @@ func (conn *Connection) WriteMessage(data []byte) (err error) {
 func (conn *Connection) Close() {
 	conn.wsConnect.Close()
 	conn.mutex.Lock()
-	//客户端下线  删除链接
+	//客户端下线,删除链接
 	addr := conn.wsConnect.RemoteAddr().String()
 	delete(GlobalOption, addr)
 	if !conn.isClosed {
@@ -136,6 +136,8 @@ ERR:
 	conn.Close()
 }
 
+// 消息处理器
+// 订阅 & 取消订阅 消息解析
 func MessageHandle(conn *Connection, data []byte) (result *request.SubResult, err error) {
 	var option SubOption
 	result = &request.SubResult{}
@@ -155,11 +157,15 @@ func MessageHandle(conn *Connection, data []byte) (result *request.SubResult, er
 		Sub(option)
 		return result.SubSuccess(), nil
 	} else if sub.Opv == "unsub" {
-
+		Unsub(conn, sub)
 	}
 	return
 }
 
+// 定时任务时间间隔为1秒
+// 遍历循环当前连接Map
+// 检查每个连接的订阅 交易对  推送频率
+// 按需推送
 func Task() {
 	task := time.NewTicker(1 * time.Second)
 	for {
@@ -184,24 +190,44 @@ func Task() {
 }
 
 // 订阅
+// 订阅信息,当前连接全局记录
 func Sub(option SubOption) {
 	address := option.Conn.wsConnect.RemoteAddr().String()
 	// 判断是否已经订阅
 	if _, ok := GlobalOption[address]; !ok {
 		GlobalOption[address] = option
 	} else {
-		fmt.Println("重复订阅")
-	}
-	for _, v := range GlobalOption {
-		fmt.Println(v.Symbol)
+		fmt.Printf("重复订阅,客户端地址: %s\n", option.Conn.wsConnect.RemoteAddr().String())
 	}
 }
 
 // 取消订阅
-//func Unsub(conn *websocket.Conn,subRequest request.SubRequest)request.SubResult  {
-//	opv:=subRequest.OpK
-//
-//	var opvSlice=make([]string,0)
-//	opvSlice=strings.Split(opv,".")
-//
-//}
+// all 全部取消,连接还存在
+// [btc,eth] 指定交易对取消 连接还存在
+// 返回 SubResult
+func Unsub(conn *Connection, subRequest request.SubRequest) (result request.SubResult) {
+	opv := subRequest.OpK
+	addr := conn.wsConnect.RemoteAddr().String()
+	var opvSlice = make([]string, 0)
+	opvSlice = strings.Split(opv, ".")
+	if opvSlice[1] == "all" {
+		delete(GlobalOption, addr)
+	} else {
+		//如果不是全部取消。需要遍历即将要取消的交易对数组
+
+	}
+	return result
+}
+
+// 服务器主动向客户端发送心跳包
+// 频率为 5s 一次
+// 客户端连续忽略2次,服务端主动断开连接
+func Ping() {
+	task := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-task.C:
+
+		}
+	}
+}
