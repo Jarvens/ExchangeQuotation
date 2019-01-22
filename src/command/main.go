@@ -16,6 +16,7 @@ func main() {
 	http.HandleFunc("/", websocket.Handle)
 	go websocket.Ping()
 	go websocket.Task()
+
 	http.ListenAndServe("0.0.0.0:1234", nil)
 
 	slice1 := []string{"1", "2"}

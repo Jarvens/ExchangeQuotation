@@ -255,6 +255,7 @@ func Ping() {
 	for {
 		select {
 		case <-task.C:
+			common.MockData()
 			for k, v := range GlobalOption {
 				fmt.Println("心跳检测")
 				unAck := v.UnAckCounter

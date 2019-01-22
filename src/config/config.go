@@ -23,16 +23,3 @@ type Mysql struct {
 	Password string
 	Url      string
 }
-
-type Exchange struct {
-	Name    string
-	Type    string
-	Durable bool
-	Queue   []*Queue
-}
-
-type Queue struct {
-	Name    string
-	Key     string
-	Durable bool
-}
