@@ -8,13 +8,18 @@ import (
 )
 
 const (
-	SUB_SUCCESS = "0"
-	SUB_FAILURE = "1"
+	SubSuccess   = "0"
+	SubFailure   = "1"
+	UnSubSuccess = "0"
+	UnSubFailure = "1"
+	Sub          = "sub"
+	UnSub        = "unsub"
 )
 
 // 订阅返回
 type SubResult struct {
 	Id         string `json:"id"`          //客户端编号，暂时作为保留属性
+	Type       string `json:"type"`        //返回类型
 	Status     string `json:"status"`      //请求状态
 	ErrCode    string `json:"err_code"`    //错误编码
 	ErrMessage string `json:"err_message"` //错误信息
@@ -57,8 +62,9 @@ func NewTick() *Tick {
 
 // 订阅成功
 func (sub *SubResult) SubSuccess() *SubResult {
-	return &SubResult{Id: "client1",
-		Status:     SUB_SUCCESS,
+	return &SubResult{Id: "client",
+		Status:     SubSuccess,
+		Type:       Sub,
 		ErrCode:    "",
 		ErrMessage: "",
 		Timestamp:  uint32(time.Now().Unix())}
@@ -66,8 +72,29 @@ func (sub *SubResult) SubSuccess() *SubResult {
 
 // 订阅失败
 func (sub *SubResult) SubFailure(code, message string) *SubResult {
-	return &SubResult{Id: "client1",
-		Status:     SUB_FAILURE,
+	return &SubResult{Id: "client",
+		Status:     SubFailure,
+		Type:       Sub,
+		ErrCode:    code,
+		ErrMessage: message,
+		Timestamp:  uint32(time.Now().Unix())}
+}
+
+// 取消订阅成功
+func (sub *SubResult) UnSubSuccess() *SubResult {
+	return &SubResult{Id: "client",
+		Type:       UnSub,
+		Status:     UnSubSuccess,
+		ErrCode:    "",
+		ErrMessage: "",
+		Timestamp:  uint32(time.Now().Unix())}
+}
+
+// 取消订阅失败
+func (sub *SubResult) UnSubFailure(code, message string) *SubResult {
+	return &SubResult{Id: "client",
+		Type:       UnSub,
+		Status:     UnSubFailure,
 		ErrCode:    code,
 		ErrMessage: message,
 		Timestamp:  uint32(time.Now().Unix())}

@@ -4,6 +4,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"websocket"
 )
@@ -16,6 +17,10 @@ func main() {
 	go websocket.Ping()
 	go websocket.Task()
 	http.ListenAndServe("0.0.0.0:1234", nil)
+
+	slice1 := []string{"1", "2"}
+	slice2 := []string{"3"}
+	fmt.Println(append(slice1, slice2...))
 
 	//var wg sync.WaitGroup
 	//quit := make(chan int)
