@@ -38,4 +38,5 @@ func main() {
 		m[id] = i
 	}
 	fmt.Println("All", count, "success")
+
 }

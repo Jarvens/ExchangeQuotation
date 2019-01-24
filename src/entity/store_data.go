@@ -15,4 +15,6 @@ type StoreData struct {
 	Vol         float32 `json:"vol"`          //成交额
 	Open        float32 `json:"open"`         //今开价
 	Close       float32 `json:"close"`        //昨收价
+	CreateTime  int64   `json:"create_time"`  //创建时间
+	UpdateTime  int64   `json:"update_time"`  //更新时间
 }

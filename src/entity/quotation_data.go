@@ -5,11 +5,18 @@ package entity
 
 import "time"
 
-type Common struct {
-	Cmd    string      `json:"cmd"`    //指令  tick depth  depth_plus
-	Symbol string      `json:"symbol"` //交易对
-	Ts     int64       `json:"ts"`     //成交时间戳
-	Data   interface{} `json:"data"`   //成交数据
+type Tick struct {
+	Cmd    string     `json:"cmd"`    //指令  tick depth  depth_plus
+	Symbol string     `json:"symbol"` //交易对
+	Ts     int64      `json:"ts"`     //成交时间戳
+	Data   []TickItem `json:"data"`
+}
+
+type Depth struct {
+	Cmd    string    `json:"cmd"`    //指令  tick depth  depth_plus
+	Symbol string    `json:"symbol"` //交易对
+	Ts     int64     `json:"ts"`     //成交时间戳
+	Data   DepthItem `json:"data"`   //成交数据
 }
 
 type DepthItem struct {
@@ -24,20 +31,21 @@ type TickItem struct {
 }
 
 // 模拟Tick数据
-func (comm *Common) MockTick() *Common {
-	tick := &TickItem{Amount: 0.12, Price: 0.11, Dir: 1}
-	return &Common{Cmd: "tick", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: tick}
+func (tick *Tick) MockTick() *Tick {
+	var tickData []TickItem
+	tickData[0] = TickItem{Amount: 0.12, Price: 0.11, Dir: 1}
+	return &Tick{Cmd: "tick", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: tickData}
 
 }
 
 // 模拟Depth数据
-func (comm *Common) MockDepth() *Common {
-	depth := &DepthItem{Asks: [][]float32{{0.12, 1.1}, {0.13, 0.9}}, Bids: [][]float32{{0.9, 0.2}, {0.8, 1.2}}}
-	return &Common{Cmd: "depth", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: depth}
+func (depth *Depth) MockDepth() *Depth {
+	depthData := DepthItem{Asks: [][]float32{{0.1, 1}, {0.2, 2}}, Bids: [][]float32{{0.3, 0.4}, {0.5, 0.6}}}
+	return &Depth{Cmd: "depth", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: depthData}
 }
 
 // 模拟DepthPlus数据
-func (comm *Common) MockDepthPlus() *Common {
-	depthPlus := &DepthItem{Asks: [][]float32{{0.12, 1.1}, {0.13, 0.9}}, Bids: [][]float32{{0.9, 0.2}, {0.8, 1.2}}}
-	return &Common{Cmd: "depthplus", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: depthPlus}
+func (depth *Depth) MockDepthPlus() *Depth {
+	depthData := DepthItem{Asks: [][]float32{{0.1, 1}, {0.2, 2}}, Bids: [][]float32{{0.3, 0.4}, {0.5, 0.6}}}
+	return &Depth{Cmd: "depthplus", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: depthData}
 }
