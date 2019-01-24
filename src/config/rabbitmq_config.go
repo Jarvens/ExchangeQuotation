@@ -12,7 +12,7 @@ import (
 var conn *amqp.Connection
 var Channel *amqp.Channel
 var connected bool = false
-var queues []string
+var Queues []string
 
 type Exchange struct {
 	Name    string
@@ -76,7 +76,7 @@ func mqConnection() (err error) {
 					for _, q := range queue {
 						// 对象比较需要初始化
 						if (Queue{} != q) {
-							queues = append(queues, q.Key)
+							Queues = append(Queues, q.Key)
 							//声明队列
 							Channel.QueueDeclare(q.Name, q.Durable, false, false, false, nil)
 							//绑定交换机

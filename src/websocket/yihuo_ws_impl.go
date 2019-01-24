@@ -251,16 +251,16 @@ func Unsub(conn *Connection, subRequest request.SubRequest) (result *request.Sub
 // 频率为 5s 一次
 // 客户端连续忽略2次,服务端主动断开连接
 func Ping() {
-	task := time.NewTicker(common.PingInterval * time.Second)
+	task := time.NewTicker(common.PingInterval * time.Millisecond)
 	for {
 		select {
 		case <-task.C:
 			common.MockData()
 			for k, v := range GlobalOption {
-				fmt.Println("心跳检测")
+				//fmt.Println("心跳检测")
 				unAck := v.UnAckCounter
 				if unAck >= common.UnAck {
-					fmt.Println("客户端未响应，主动断开")
+					//fmt.Printf("\r 客户端未响应，主动断开 %d",time.Now().UnixNano())
 					//v.Conn.Close()
 					//continue
 				}

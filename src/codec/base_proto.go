@@ -31,7 +31,7 @@ func Decoder(buffer []byte, ch chan []byte) []byte {
 	var msgLen uint16
 	for i = 0; i < len; i++ {
 		if len < QuoteHeaderLen {
-			fmt.Printf("decoder faild, cause protocol length less than minLength ")
+			fmt.Printf("Decode faild, cause protocol length less than minLength ")
 			break
 		}
 		header := string(buffer[i:QuoteHeaderLen])
