@@ -13,39 +13,35 @@ import (
 
 // 监听消息队列
 func init() {
-	queues := config.Queues
-	for _, val := range queues {
+	go func() {
+		messages, err := config.Channel.Consume("go.queue1", "", true, false, false, false, nil)
+		if err != nil {
+			fmt.Printf("Consume queue: %s faild\n", "go.queue1")
+		}
+
+		readChan := make(chan bool)
+
 		go func() {
-			messages, err := config.Channel.Consume(val, "", true, false, false, false, nil)
-			if err != nil {
-				fmt.Printf("Consume queue: %s faild\n", val)
-			}
+			for message := range messages {
+				fmt.Printf("Receive message: %d - %s\n", time.Now().Unix(), message.Body)
+				var data interface{}
+				err = json.Unmarshal(message.Body, &data)
+				if err != nil {
+					fmt.Printf("Marshal mq message faild")
+				}
 
-			readChan := make(chan bool)
-
-			go func() {
-				for message := range messages {
-					fmt.Printf("Receive message: %d - %s", time.Now().Unix(), message.Body)
-					var data interface{}
-					err = json.Unmarshal(message.Body, &data)
-					if err != nil {
-						fmt.Printf("Marshal mq message faild")
-					}
-
-					m := data.(map[string]interface{})
-					for k, v := range m {
-						if k == "cmd" {
-							if v == "tick" {
-								TickHandle(message.Body)
-							}
+				m := data.(map[string]interface{})
+				for k, v := range m {
+					if k == "cmd" {
+						if v == "tick" {
+							TickHandle(message.Body)
 						}
 					}
 				}
-			}()
-
-			<-readChan
+			}
 		}()
-	}
+		<-readChan
+	}()
 }
 
 // 推送消息

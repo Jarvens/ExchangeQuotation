@@ -33,8 +33,8 @@ type TickItem struct {
 // 模拟Tick数据
 func (tick *Tick) MockTick() *Tick {
 	var tickData []TickItem
-	tickData[0] = TickItem{Amount: 0.12, Price: 0.11, Dir: 1}
-	return &Tick{Cmd: "tick", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: tickData}
+	data := append(tickData, TickItem{Amount: 0.12, Price: 0.11, Dir: 1})
+	return &Tick{Cmd: "tick", Symbol: "BTCUSDT", Ts: time.Now().Unix(), Data: data}
 
 }
 

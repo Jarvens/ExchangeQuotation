@@ -42,6 +42,10 @@ func RedisSetWithExpire(key, value string, num int) bool {
 func RedisGetString(key string) (value string, err error) {
 	conn := config.RedisPool.Get()
 	defer conn.Close()
+	exist, _ := redis.Bool(conn.Do("EXISTS", key))
+	if !exist {
+		return "", nil
+	}
 	v, err := redis.String(conn.Do("GET", key))
 	if err != nil {
 		log.Panicf("get string error: %v", err)

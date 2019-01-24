@@ -6,9 +6,11 @@ package websocket
 import (
 	"common"
 	"encoding/json"
+	"entity"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"handle"
 	"log"
 	"request"
 	"strings"
@@ -255,7 +257,13 @@ func Ping() {
 	for {
 		select {
 		case <-task.C:
-			common.MockData()
+
+			//TODO 模拟发送数据
+			tick := entity.Tick{}
+			val := tick.MockTick()
+			data, _ := json.Marshal(val)
+			handle.PublishMessage("go.direct.exchange", "bind1", data)
+
 			for k, v := range GlobalOption {
 				//fmt.Println("心跳检测")
 				unAck := v.UnAckCounter

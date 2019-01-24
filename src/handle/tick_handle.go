@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"entity"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -15,7 +16,7 @@ import (
 func TickHandle(data []byte) {
 	tick := entity.Tick{}
 	json.Unmarshal(data, &tick)
-	key := string(tick.Ts)
+	key := strconv.Itoa(int(tick.Ts))
 	val, err := common.RedisGetString(key)
 	now := time.Now().UnixNano()
 	if err != nil {
